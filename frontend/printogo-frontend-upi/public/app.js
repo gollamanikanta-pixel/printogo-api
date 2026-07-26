@@ -1,4 +1,4 @@
-const API_BASE = 'https://printogo-api2-production.up.railway.app';
+ const API_BASE = 'https://printogo-api2-production.up.railway.app';
 
 const state = {
   fileId: null,
@@ -196,11 +196,10 @@ const App = {
     qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(order.id)}`;
     qr.hidden = false;
 
-    const steps = ['created', 'pending_confirmation', 'paid', 'queued', 'printing', 'completed'];
+    const steps = ['created', 'paid', 'queued', 'printing', 'completed'];
     const labels = {
       created: 'Order Placed',
-      pending_confirmation: 'Payment Submitted',
-      paid: 'Payment Confirmed by Shop',
+      paid: 'Payment Submitted',
       queued: 'Sent to Printer',
       printing: 'Printing',
       completed: order.deliveryOption === 'delivery' ? 'Out for Delivery' : 'Ready for Pickup',
@@ -222,13 +221,9 @@ const App = {
     const title = document.getElementById('statusTitle');
     const sub = document.getElementById('statusSub');
 
-    if (order.status === 'pending_confirmation') {
-      icon.textContent = '🧾'; title.textContent = 'Payment Submitted';
-      sub.textContent = 'Waiting for the shop to confirm they received your UPI payment…';
-      liveBox.hidden = false; liveText.textContent = 'This is usually quick — the shop checks their UPI app.';
-    } else if (order.status === 'paid') {
-      icon.textContent = '✅'; title.textContent = 'Payment Confirmed';
-      sub.textContent = 'Waiting for the shop printer to pick up your job…';
+    if (order.status === 'paid') {
+      icon.textContent = '✅'; title.textContent = 'Payment Submitted';
+      sub.textContent = 'Sending your file to the printer…';
       liveBox.hidden = false; liveText.textContent = `Waiting for printer at ${order.printerIp} to connect…`;
     } else if (order.status === 'queued') {
       icon.textContent = '📡'; title.textContent = 'Connecting to Printer';
