@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>PrintoGo — Shop Dashboard</title>
+<link rel="icon" href="/icons/icon-192.png" />
+<link rel="stylesheet" href="/styles.css" />
+<style>
+  .phone { max-width: 560px; }
+  .shop-header { padding: 20px 18px 10px; }
+  .shop-header h1 { margin: 0 0 4px; font-size: 20px; color: var(--primary); }
+  .shop-header p { margin: 0; color: var(--text-muted); font-size: 13px; }
+  .ip-bar { display: flex; gap: 8px; padding: 0 18px 14px; }
+  .order-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 14px; margin: 0 18px 12px;
+  }
+  .order-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .order-top b { font-size: 14.5px; }
+  .order-top small { display: block; color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+  .order-amt { font-size: 18px; font-weight: 800; color: var(--primary); }
+  .order-meta { font-size: 12.5px; color: var(--text-muted); margin-top: 6px; }
+  .order-actions { display: flex; gap: 10px; margin-top: 12px; }
+  .btn-confirm { flex: 1; background: var(--success); color: #fff; border: none; border-radius: 10px; padding: 11px; font-weight: 700; font-size: 13.5px; }
+  .btn-reject { flex: 1; background: #fff; color: var(--danger); border: 1.5px solid var(--danger); border-radius: 10px; padding: 11px; font-weight: 700; font-size: 13.5px; }
+  .empty { text-align: center; color: var(--text-muted); padding: 40px 20px; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="shop-header">
+    <h1>🏬 PrintoGo — Shop Dashboard</h1>
+    <p>Orders waiting for you to confirm UPI payment before they print.</p>
+  </div>
+  <div class="ip-bar">
+    <input id="ipInput" class="text-input" placeholder="Your printer IP, e.g. 192.168.1.108" />
+    <button class="btn-primary" style="width:auto;padding:0 16px" onclick="Shop.setIp()">Set</button>
+  </div>
+  <div id="list"></div>
+</div>
+
+<script>
+const API_BASE = 'https://printogo-api2-production.up.railway.app';
+let printerIp = localStorage.getItem('printogo_shop_ip') || '';
+
+const Shop = {
+  setIp() {
+    printerIp = document.getElementById('ipInput').value.trim();
+    localStorage.setItem('printogo_shop_ip', printerIp);
+    Shop.refresh();
+  },
+
+  async refresh() {
+    const listEl = document.getElementById('list');
+    if (!printerIp) {
+      listEl.innerHTML = '<div class="empty">Enter your printer\'s IP above to see incoming orders.</div>';
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/api/shop/pending?printerIp=${encodeURIComponent(printerIp)}`);
+      const orders = await res.json();
+      if (!res.ok) throw new Error(orders.error || 'Could not load orders');
+
+      if (orders.length === 0) {
+        listEl.innerHTML = '<div class="empty">No orders waiting for confirmation right now.</div>';
+        return;
+      }
+      listEl.innerHTML = orders.map((o) => `
+        <div class="order-card">
+          <div class="order-top">
+            <div>
+              <b>${o.fileName}</b>
+              <small>Order ${o.id} · ${o.copies} cop${o.copies > 1 ? 'ies' : 'y'} · ${o.color === 'color' ? 'Color' : 'B&W'} · ${o.side === 'double' ? 'Double' : 'Single'}-side</small>
+            </div>
+            <div class="order-amt">₹${o.total}</div>
+          </div>
+          ${o.utr ? `<div class="order-meta">UTR/Reference given: <b>${o.utr}</b></div>` : '<div class="order-meta">No reference number given — check your UPI app for a payment of ₹' + o.total + '.</div>'}
+          <div class="order-actions">
+            <button class="btn-confirm" onclick="Shop.confirm('${o.id}')">✅ Payment Received</button>
+            <button class="btn-reject" onclick="Shop.reject('${o.id}')">✕ Not Found</button>
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      listEl.innerHTML = `<div class="empty">${err.message}</div>`;
+    }
+  },
+
+  async confirm(orderId) {
+    await fetch(`${API_BASE}/api/orders/${orderId}/confirm-payment`, { method: 'POST' });
+    Shop.refresh();
+  },
+
+  async reject(orderId) {
+    await fetch(`${API_BASE}/api/orders/${orderId}/reject-payment`, { method: 'POST' });
+    Shop.refresh();
+  },
+};
+
+document.getElementById('ipInput').value = printerIp;
+Shop.refresh();
+setInterval(Shop.refresh, 5000);
+</script>
+</body>
+</html>

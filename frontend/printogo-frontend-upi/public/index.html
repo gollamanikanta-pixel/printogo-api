@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+<title>PrintoGo — Smart Printing, No Queues</title>
+<meta name="description" content="Upload a document, pick print options, pay by UPI, and pick it up — real orders, real UPI payments, real print jobs." />
+<meta name="theme-color" content="#2B2E83" />
+<link rel="manifest" href="/manifest.json" />
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+<link rel="icon" href="/icons/icon-192.png" />
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- ===== HOME ===== -->
+  <section id="screen-home" class="screen active">
+    <div class="statusbar"></div>
+    <div class="home-hero">
+      <div class="logo-mark">P</div>
+      <h1>PrintoGo</h1>
+      <p class="tagline">Smart Printing. No Queues. Save Time.</p>
+    </div>
+    <div class="home-illustration" aria-hidden="true">🖨️</div>
+    <div class="home-steps">
+      <div class="home-step"><span class="step-ico">⬆️</span><div><b>Upload &amp; Print</b><small>Upload your document and get it printed</small></div></div>
+      <div class="home-step"><span class="step-ico">⚙️</span><div><b>Choose Options</b><small>Paper, color, copies</small></div></div>
+      <div class="home-step"><span class="step-ico">💳</span><div><b>Pay by UPI</b><small>Scan or tap to pay with any UPI app</small></div></div>
+      <div class="home-step"><span class="step-ico">📍</span><div><b>Pick Up or Delivery</b><small>Collect at shop or get it delivered</small></div></div>
+    </div>
+    <button class="btn-primary btn-big" onclick="App.go('upload')">Upload &amp; Print</button>
+  </section>
+
+  <!-- ===== UPLOAD ===== -->
+  <section id="screen-upload" class="screen">
+    <header class="topbar"><button class="back" onclick="App.go('home')">←</button><h2>Upload PDF</h2><span></span></header>
+    <div class="content">
+      <label id="dropzone" class="dropzone">
+        <input type="file" id="fileInput" accept="application/pdf" hidden />
+        <div class="dz-icon">☁️⬆️</div>
+        <b>Drag &amp; drop your PDF here</b>
+        <span>or</span>
+        <span class="btn-choose">Choose File</span>
+        <small>Only PDF files are allowed · Max file size: 50MB</small>
+      </label>
+      <div id="fileCard" class="file-card" hidden>
+        <div class="file-icon">📄</div>
+        <div class="file-info">
+          <b id="fileName">—</b>
+          <small id="fileMeta">—</small>
+        </div>
+        <button class="file-remove" onclick="App.removeFile()">✕</button>
+      </div>
+      <div id="uploadStatus" class="hint"></div>
+    </div>
+    <div class="footer">
+      <button id="uploadContinue" class="btn-primary" disabled onclick="App.go('options')">Continue</button>
+    </div>
+  </section>
+
+  <!-- ===== PRINT OPTIONS ===== -->
+  <section id="screen-options" class="screen">
+    <header class="topbar"><button class="back" onclick="App.go('upload')">←</button><h2>Print Options</h2><span></span></header>
+    <div class="content">
+      <div class="file-card static">
+        <div class="file-icon">📄</div>
+        <div class="file-info"><b id="optFileName">—</b><small id="optFileMeta">—</small></div>
+      </div>
+
+      <div class="option-row">
+        <span>Number of Copies</span>
+        <div class="stepper">
+          <button onclick="App.changeCopies(-1)">−</button>
+          <span id="copiesVal">1</span>
+          <button onclick="App.changeCopies(1)">+</button>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <span class="option-label">Print Mode</span>
+        <div class="toggle-row">
+          <button class="toggle-btn active" data-group="color" data-val="bw" onclick="App.setOpt('color','bw',this)">Black &amp; White</button>
+          <button class="toggle-btn" data-group="color" data-val="color" onclick="App.setOpt('color','color',this)">Color</button>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <span class="option-label">Print Side</span>
+        <div class="toggle-row">
+          <button class="toggle-btn active" data-group="side" data-val="single" onclick="App.setOpt('side','single',this)">Single Side</button>
+          <button class="toggle-btn" data-group="side" data-val="double" onclick="App.setOpt('side','double',this)">Double Side</button>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <span class="option-label">Delivery Option</span>
+        <div class="toggle-row">
+          <button class="toggle-btn active" data-group="delivery" data-val="pickup" onclick="App.setOpt('deliveryOption','pickup',this)">🏬 Self Pickup</button>
+          <button class="toggle-btn" data-group="delivery" data-val="delivery" onclick="App.setOpt('deliveryOption','delivery',this)">🚚 Delivery</button>
+        </div>
+      </div>
+
+      <div class="option-group">
+        <span class="option-label">Shop Printer</span>
+        <p class="hint" style="margin:2px 0 8px">Ask the shopkeeper for their printer's Wi‑Fi IP address, then enter it below.</p>
+        <input id="printerIp" class="text-input" placeholder="e.g. 192.168.1.108" inputmode="decimal" />
+        <input id="printerName" class="text-input" placeholder="Printer / shop name (optional)" style="margin-top:8px" />
+      </div>
+    </div>
+    <div class="footer">
+      <button class="btn-primary" onclick="App.goSummary()">Continue</button>
+    </div>
+  </section>
+
+  <!-- ===== ORDER SUMMARY ===== -->
+  <section id="screen-summary" class="screen">
+    <header class="topbar"><button class="back" onclick="App.go('options')">←</button><h2>Order Summary</h2><span></span></header>
+    <div class="content">
+      <div class="file-card static">
+        <div class="file-icon">📄</div>
+        <div class="file-info"><b id="sumFileName">—</b><small id="sumFileMeta">—</small></div>
+      </div>
+      <div class="summary-list" id="summaryList"></div>
+      <div class="total-card">
+        <div><small>Total to Pay</small><div class="total-amt" id="totalAmt">₹0</div></div>
+        <div class="qr-mini">📷</div>
+      </div>
+      <div id="summaryError" class="hint error"></div>
+    </div>
+    <div class="footer">
+      <button id="payBtn" class="btn-primary" onclick="App.createOrder()">Pay by UPI</button>
+    </div>
+  </section>
+
+  <!-- ===== UPI PAYMENT ===== -->
+  <section id="screen-upi" class="screen">
+    <header class="topbar"><button class="back" onclick="App.go('summary')">←</button><h2>Pay via UPI</h2><span></span></header>
+    <div class="content">
+      <div class="upi-amount-card">
+        <small>Amount to Pay</small>
+        <div class="total-amt" id="upiAmount">₹0</div>
+        <span id="upiPayee">to PrintoGo</span>
+      </div>
+
+      <img id="upiQr" class="qr-img" alt="UPI QR code" />
+
+      <button class="btn-primary" id="upiAppBtn" onclick="App.openUpiApp()">📲 Pay with UPI App</button>
+      <p class="hint">Tapping the button opens GPay / PhonePe / Paytm with the amount filled in. Or scan the QR code above from any UPI app.</p>
+
+      <div class="option-group">
+        <span class="option-label">UPI Reference / UTR (optional, but helps the shop confirm faster)</span>
+        <input id="utrInput" class="text-input" placeholder="12-digit UPI transaction ID" inputmode="numeric" />
+      </div>
+
+      <div id="upiError" class="hint error"></div>
+    </div>
+    <div class="footer">
+      <button class="btn-primary" onclick="App.markPaid()">I've Completed the Payment</button>
+    </div>
+  </section>
+
+  <!-- ===== STATUS / TRACKING ===== -->
+  <section id="screen-status" class="screen">
+    <header class="topbar"><span></span><h2>Order Status</h2><span></span></header>
+    <div class="content" id="statusContent">
+      <div class="status-hero">
+        <div class="status-icon" id="statusIcon">⏳</div>
+        <h3 id="statusTitle">Processing…</h3>
+        <p id="statusSub"></p>
+      </div>
+
+      <div class="ref-card">
+        <div><small>Your Order ID</small><b id="statusOrderId">—</b></div>
+        <div><small>Amount</small><b id="statusAmount">—</b></div>
+      </div>
+
+      <img id="qrImg" class="qr-img" alt="Order QR code" hidden />
+
+      <ol class="timeline" id="timeline"></ol>
+
+      <div id="printerLive" class="printer-live" hidden>
+        <div class="pulse-dot"></div>
+        <span id="printerLiveText">Connecting to printer…</span>
+      </div>
+    </div>
+    <div class="footer">
+      <button class="btn-secondary" onclick="App.go('home')">Back to Home</button>
+    </div>
+  </section>
+
+</div>
+
+<script src="/app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
