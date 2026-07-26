@@ -1,0 +1,11 @@
+{
+  "name": "printogo-print-agent",
+  "version": "1.0.0",
+  "type": "commonjs",
+  "main": "agent.js",
+  "scripts": { "start": "node agent.js" },
+  "dependencies": {
+    "ipp": "^3.0.2",
+    "node-fetch": "^2.7.0"
+  }
+}
