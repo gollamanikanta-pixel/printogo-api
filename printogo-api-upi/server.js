@@ -1,4 +1,4 @@
-const express = require('express');
+ const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const fs = require('fs');
@@ -39,7 +39,7 @@ function calcPrice({ pages, copies, color, side, deliveryOption }) {
   const perPage = color === 'color' ? 8 : 2;
   const sideMultiplier = side === 'double' ? 0.6 : 1;
   const printCost = Math.ceil(pages * perPage * sideMultiplier) * copies;
-  const convenienceFee = 15;
+  const convenienceFee = 5;
   const deliveryFee = deliveryOption === 'delivery' ? 25 : 0;
   const total = printCost + convenienceFee + deliveryFee;
   return { perPage, printCost, convenienceFee, deliveryFee, total };
@@ -113,7 +113,7 @@ app.post('/api/orders', (req, res) => {
       pages: file.pages,
       copies, color, side, deliveryOption, printerIp, printerName: printerName || '',
       ...price,
-      status: 'created', // created -> pending_confirmation -> paid -> queued -> printing -> completed
+      status: 'created',
       utr: null,
       createdAt: new Date().toISOString(),
       timeline: [{ status: 'created', at: new Date().toISOString() }],
@@ -140,9 +140,9 @@ app.post('/api/orders/:id/mark-paid', (req, res) => {
   const order = db.orders[req.params.id];
   if (!order) return res.status(404).json({ error: 'Order not found' });
 
-  order.status = 'pending_confirmation';
+  order.status = 'paid';
   order.utr = utr || null;
-  order.timeline.push({ status: 'pending_confirmation', at: new Date().toISOString() });
+  order.timeline.push({ status: 'paid', at: new Date().toISOString() });
   writeDB(db);
   res.json({ success: true, order });
 });
