@@ -1,4 +1,4 @@
-const API_BASE = 'https://printogo-api2-production.up.railway.app';
+ const API_BASE = 'https://printogo-api2-production.up.railway.app';
 
 const state = {
   fileId: null,
