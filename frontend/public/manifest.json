@@ -1,0 +1,14 @@
+{
+  "name": "PrintoGo - Smart Printing",
+  "short_name": "PrintoGo",
+  "description": "Upload, pay, and print at any connected shop printer.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F5F6FA",
+  "theme_color": "#2B2E83",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
