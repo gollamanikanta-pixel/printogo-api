@@ -1,4 +1,4 @@
- const CACHE = 'printogo-v2';
+ const CACHE = 'printogo-v3';
 const SHELL = ['/', '/styles.css', '/app.js', '/manifest.json'];
 
 self.addEventListener('install', (e) => {
